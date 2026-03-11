@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const V2 = 1.0 * areaRatio;
 
             // 2. Math: Pressure Drop relates to velocity squared and viscosity
-            const deltaP = (V2 * V2 * 0.5) * visc;
+            const deltaP = ((V2 * V2 * 0.5) * visc) / 10;
 
             dispVel.textContent = V2.toFixed(1);
             dispDrop.textContent = deltaP.toFixed(1);
