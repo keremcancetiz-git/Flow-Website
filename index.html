@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Dynamics Education</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <nav class="app-header">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            Fluid Dynamics EDU
+        </div>
+        <div class="tab-container" id="main-tabs">
+            <button class="tab-btn active" data-target="module-ideal-gas">Ideal Gas Law</button>
+            <button class="tab-btn" data-target="module-pipe-flow">Pipe Flow</button>
+            <button class="tab-btn" data-target="module-compressible">Compressible Flow</button>
+        </div>
+    </nav>
+
+    <main class="app-container">
+
+        <!-- MODULE 1: IDEAL GAS LAW -->
+        <section id="module-ideal-gas" class="module-section active">
+            <header class="module-header">
+                <h1>The Ideal Gas Law (PV = nRT)</h1>
+                <p>Explore how pressure, volume, temperature, and the amount of gas interact in a closed system.</p>
+            </header>
+
+            <div class="module-grid">
+                <!-- Controls Card -->
+                <div class="card controls-card">
+                    <h3>System Variables</h3>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="ig-temp">Temperature (T)</label>
+                            <span class="val-display"><span id="val-ig-temp">300</span> K</span>
+                        </div>
+                        <input type="range" id="ig-temp" min="100" max="1000" value="300" step="10">
+                        <div class="helper-text">Increases kinetic energy of particles.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="ig-vol">Volume (V)</label>
+                            <span class="val-display"><span id="val-ig-vol">10.0</span> L</span>
+                        </div>
+                        <input type="range" id="ig-vol" min="2" max="20" value="10" step="0.5">
+                        <div class="helper-text">Changes the space particles have to bounce in.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="ig-moles">Paticles (n)</label>
+                            <span class="val-display"><span id="val-ig-moles">1.0</span> mol</span>
+                        </div>
+                        <input type="range" id="ig-moles" min="0.1" max="5.0" value="1.0" step="0.1">
+                        <div class="helper-text">Adds or removes gas from the cylinder.</div>
+                    </div>
+                </div>
+
+                <!-- Visualization Card -->
+                <div class="card viz-card">
+                    <div class="viz-header">
+                        <div class="result-metric">
+                            <span class="metric-label">Calculated Pressure (P)</span>
+                            <span class="metric-value" id="val-ig-pressure">24.9</span>
+                            <span class="metric-unit">atm</span>
+                        </div>
+                    </div>
+
+                    <div class="canvas-container">
+                        <canvas id="ideal-gas-canvas" width="400" height="400"></canvas>
+
+                        <!-- Decorative scales -->
+                        <div class="volume-scale"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 2: PIPE FLOW -->
+        <section id="module-pipe-flow" class="module-section">
+            <header class="module-header">
+                <h1>Pipe Flow Dynamics</h1>
+                <p>Observe how constrictions map to fluid velocity increases (Bernoulli) and friction drops
+                    (Poiseuille).</p>
+            </header>
+
+            <div class="module-grid">
+                <!-- Controls Card -->
+                <div class="card controls-card">
+                    <h3>Flow Parameters</h3>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="pf-diameter">Constriction Diameter (D2)</label>
+                            <span class="val-display"><span id="val-pf-diameter">100</span>%</span>
+                        </div>
+                        <input type="range" id="pf-diameter" min="20" max="100" value="100" step="1">
+                        <div class="helper-text">Narrows the center of the pipe.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="pf-viscosity">Fluid Viscosity (μ)</label>
+                            <span class="val-display"><span id="val-pf-viscosity">Water</span></span>
+                        </div>
+                        <input type="range" id="pf-viscosity" min="1" max="3" value="1" step="1">
+                        <div class="helper-text">1=Water, 2=Oil, 3=Honey. Affects pressure drop.</div>
+                    </div>
+                </div>
+
+                <!-- Visualization Card -->
+                <div class="card viz-card">
+                    <div class="viz-header split">
+                        <div class="result-metric">
+                            <span class="metric-label">Velocity (V2)</span>
+                            <span class="metric-value text-blue" id="val-pf-velocity">1.0</span>
+                            <span class="metric-unit">m/s</span>
+                        </div>
+                        <div class="result-metric">
+                            <span class="metric-label">Pressure Drop (ΔP)</span>
+                            <span class="metric-value text-red" id="val-pf-drop">0.0</span>
+                            <span class="metric-unit">kPa</span>
+                        </div>
+                    </div>
+
+                    <div class="pipe-container">
+                        <div class="pipe-outer">
+                            <div class="pipe-inner" id="venturi-pipe">
+                                <div class="flow-particles" id="pipe-particles"></div>
+                            </div>
+                        </div>
+                        <div class="pressure-gauges">
+                            <div class="gauge p1">P1</div>
+                            <div class="gauge p2">P2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODULE 3: COMPRESSIBLE FLOW -->
+        <section id="module-compressible" class="module-section">
+            <header class="module-header">
+                <h1>Compressible Flow: Mass vs Volumetric</h1>
+                <p>Why industry uses Mass Flow Controllers (MFCs) instead of Volumetric Flow Meters for gases.</p>
+            </header>
+
+            <div class="module-grid">
+                <!-- Controls Card -->
+                <div class="card controls-card">
+                    <h3>Environmental Factors</h3>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="cf-temp">Heater Temperature</label>
+                            <span class="val-display"><span id="val-cf-temp">20</span> °C</span>
+                        </div>
+                        <input type="range" id="cf-temp" min="-20" max="200" value="20" step="1">
+                        <div class="helper-text">Heating gas expands its volume.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="cf-pressure">Upstream Pressure</label>
+                            <span class="val-display"><span id="val-cf-pressure">1.0</span> atm</span>
+                        </div>
+                        <input type="range" id="cf-pressure" min="0.5" max="3.0" value="1.0" step="0.1">
+                        <div class="helper-text">Compresses the gas density.</div>
+                    </div>
+                </div>
+
+                <!-- Visualization Card -->
+                <div class="card viz-card no-padding">
+                    <div class="comparison-view">
+                        <!-- Top: Volumetric -->
+                        <div class="meter-lane">
+                            <div class="meter-info">
+                                <h4>Volumetric Flow Meter</h4>
+                                <p class="meter-desc">Fails to account for density changes.</p>
+                                <div class="meter-readout bad-readout">
+                                    <span id="readout-cfm">10.0</span> <span class="unit">L/min</span>
+                                </div>
+                            </div>
+                            <div class="meter-visual">
+                                <div class="gas-volume-indicator" id="viz-volumetric">
+                                    <div class="gas-dots vol-dots"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom: Mass -->
+                        <div class="meter-lane mt-border">
+                            <div class="meter-info">
+                                <h4>Mass Flow Controller (MFC)</h4>
+                                <p class="meter-desc">Measures actual molecules passing through.</p>
+                                <div class="meter-readout good-readout">
+                                    <span id="readout-slpm">10.0</span> <span class="unit">SLPM</span>
+                                </div>
+                            </div>
+                            <div class="meter-visual">
+                                <div class="gas-mass-indicator" id="viz-mass">
+                                    <div class="gas-dots mass-dots"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="./app.js"></script>
+</body>
+
+</html>
