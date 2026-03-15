@@ -255,8 +255,234 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCompressible();
     }
 
+    // --- 5. FTIR Spectroscopy Module (Canvas & DOM) ---
+    function initFtir() {
+        const canvas = document.getElementById('ftir-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const elGas = document.getElementById('ftir-gas');
+        const elConc = document.getElementById('ftir-conc');
+        const elPress = document.getElementById('ftir-press');
+        const elTemp = document.getElementById('ftir-temp');
+
+        const dispConc = document.getElementById('val-ftir-conc');
+        const dispPress = document.getElementById('val-ftir-press');
+        const dispTemp = document.getElementById('val-ftir-temp');
+
+        // Gas Spectroscopic Data (Approximations for Education)
+        const gasData = {
+            'co2': {
+                name: 'Carbon Dioxide',
+                color: '#ef4444',
+                peaks: [[2349, 1.0, 15], [667, 0.6, 20]],
+                xMin: 500, xMax: 3000
+            },
+            'h2o': {
+                name: 'Water Vapor',
+                color: '#3b82f6',
+                peaks: [[1595, 0.8, 40], [3657, 0.5, 30], [3756, 0.7, 30]],
+                xMin: 1000, xMax: 4000
+            },
+            'ch4': {
+                name: 'Methane',
+                color: '#10b981',
+                peaks: [[1306, 0.7, 25], [3019, 0.9, 15]],
+                xMin: 800, xMax: 3500
+            }
+        };
+
+        function drawSpectrum() {
+            const gasKey = elGas.value;
+            const conc = parseFloat(elConc.value) / 100;
+            const P = parseFloat(elPress.value);
+            const T = parseFloat(elTemp.value) + 273.15;
+
+            dispConc.textContent = elConc.value;
+            dispPress.textContent = P.toFixed(1);
+            dispTemp.textContent = elTemp.value;
+
+            const gas = gasData[gasKey];
+            const densityFactor = conc * (P / (T / 298.15));
+            const totalBroadening = Math.max(1, P * 1.5) * Math.max(1, Math.sqrt(T / 298.15));
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = 1; i < 10; i++) {
+                let x = (canvas.width / 10) * i;
+                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+                let y = (canvas.height / 4) * i;
+                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+            }
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.strokeStyle = gas.color;
+            ctx.lineWidth = 2;
+            const numPoints = canvas.width;
+            const xRange = gas.xMax - gas.xMin;
+
+            for (let i = 0; i <= numPoints; i++) {
+                let wavenumber = gas.xMin + (i / numPoints) * xRange;
+                let totalAbsorbance = 0;
+                gas.peaks.forEach(peak => {
+                    let [center, strength, baseWidth] = peak;
+                    let currentWidth = baseWidth * totalBroadening;
+                    let distance = Math.abs(wavenumber - center);
+                    totalAbsorbance += (strength * densityFactor) / (1 + Math.pow(distance / currentWidth, 2));
+                });
+                let visualY = canvas.height - (Math.min(totalAbsorbance / 1.2, 1) * canvas.height);
+                visualY += (Math.random() - 0.5) * (T / 800) * 5;
+                if (i === 0) ctx.moveTo(i, visualY);
+                else ctx.lineTo(i, Math.max(0, visualY));
+            }
+            ctx.stroke();
+
+            const particles = document.getElementById('ftir-particles');
+            if (particles) particles.style.backgroundColor = gas.color;
+        }
+
+        elGas.addEventListener('change', drawSpectrum);
+        elConc.addEventListener('input', drawSpectrum);
+        elPress.addEventListener('input', drawSpectrum);
+        elTemp.addEventListener('input', drawSpectrum);
+        drawSpectrum();
+    }
+
+    // --- 6. Molecular View Module (Canvas Particle-Photon) ---
+    function initMolecularView() {
+        const canvas = document.getElementById('molecular-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const elCross = document.getElementById('mol-cross');
+        const elSpeed = document.getElementById('mol-speed');
+        const elDensity = document.getElementById('mol-density');
+        const elFlux = document.getElementById('mol-flux');
+
+        const dispCross = document.getElementById('val-mol-cross');
+        const dispSpeed = document.getElementById('val-mol-speed');
+        const dispDensity = document.getElementById('val-mol-density');
+
+        let molecules = [];
+        let photons = [];
+        let frameCount = 0;
+
+        class Molecule {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.isExcited = 0;
+                this.baseRadius = 8;
+            }
+            update(speedMult) {
+                this.x += this.vx * speedMult;
+                this.y += this.vy * speedMult;
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                if (this.isExcited > 0) this.isExcited -= 0.03;
+            }
+            draw(ctx, crossMult) {
+                const r = this.baseRadius * crossMult;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+                if (this.isExcited > 0) {
+                    ctx.fillStyle = `rgba(16, 185, 129, ${this.isExcited})`;
+                    ctx.strokeStyle = '#10b981';
+                    const shake = this.isExcited * 5;
+                    ctx.arc(this.x + (Math.random() - 0.5) * shake, this.y + (Math.random() - 0.5) * shake, r, 0, Math.PI * 2);
+                } else {
+                    ctx.fillStyle = 'rgba(30, 41, 59, 0.05)';
+                    ctx.strokeStyle = '#1e293b';
+                }
+                ctx.lineWidth = 2;
+                ctx.fill();
+                ctx.stroke();
+            }
+        }
+
+        class Photon {
+            constructor() {
+                this.x = 0;
+                this.y = Math.random() * canvas.height;
+                this.speed = 5;
+            }
+            update() {
+                this.x += this.speed;
+            }
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.moveTo(this.x, this.y);
+                for (let i = 0; i < 15; i += 3) {
+                    ctx.lineTo(this.x - i, this.y + Math.sin((this.x - i) * 0.4) * 4);
+                }
+                ctx.stroke();
+            }
+        }
+
+        function syncMolecules() {
+            const count = parseInt(elDensity.value);
+            while (molecules.length < count) molecules.push(new Molecule());
+            while (molecules.length > count) molecules.pop();
+            dispDensity.textContent = count;
+        }
+
+        function simLoop() {
+            const speedVal = parseInt(elSpeed.value);
+            const crossMult = parseFloat(elCross.value);
+            const flux = parseInt(elFlux.value);
+
+            dispSpeed.textContent = speedVal > 7 ? 'High' : (speedVal < 3 ? 'Low' : 'Normal');
+            dispCross.textContent = crossMult.toFixed(1);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (frameCount % Math.max(1, Math.floor(40 / flux)) === 0) {
+                photons.push(new Photon());
+            }
+
+            molecules.forEach(m => {
+                m.update(speedVal / 3);
+                m.draw(ctx, crossMult);
+            });
+
+            for (let i = photons.length - 1; i >= 0; i--) {
+                const p = photons[i];
+                p.update();
+                p.draw(ctx);
+                let absorbed = false;
+                for (let m of molecules) {
+                    const dx = p.x - m.x;
+                    const dy = p.y - m.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < m.baseRadius * crossMult * 1.2) {
+                        m.isExcited = 1.0;
+                        absorbed = true;
+                        break;
+                    }
+                }
+                if (absorbed || p.x > canvas.width + 20) photons.splice(i, 1);
+            }
+            frameCount++;
+            requestAnimationFrame(simLoop);
+        }
+
+        elDensity.addEventListener('input', syncMolecules);
+        syncMolecules();
+        simLoop();
+    }
+
     // Initialize all modules
     initIdealGas();
     initPipeFlow();
     initCompressible();
+    initFtir();
+    initMolecularView();
 });

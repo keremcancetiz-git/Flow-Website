@@ -26,6 +26,8 @@
             <button class="tab-btn active" data-target="module-ideal-gas">Ideal Gas Law</button>
             <button class="tab-btn" data-target="module-pipe-flow">Pipe Flow</button>
             <button class="tab-btn" data-target="module-compressible">Compressible Flow</button>
+            <button class="tab-btn" data-target="module-ftir">FTIR Spectroscopy</button>
+            <button class="tab-btn" data-target="module-molecular">Molecular View</button>
         </div>
     </nav>
 
@@ -223,6 +225,224 @@
                 </div>
             </div>
         </section>
+
+        <!-- MODULE 4: FTIR -->
+        <section id="module-ftir" class="module-section">
+            <header class="module-header">
+                <h1>FTIR Spectroscopy</h1>
+                <p>Understand how downstream gas analysis works, and why unstable conditions destroy calibration
+                    accuracy.</p>
+            </header>
+
+            <div class="module-grid">
+                <!-- Controls Card -->
+                <div class="card controls-card">
+                    <h3>Cell Conditions & Target</h3>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="ftir-gas">Target Molecule</label>
+                        </div>
+                        <select id="ftir-gas" class="industrial-select">
+                            <option value="co2">Carbon Dioxide (CO2)</option>
+                            <option value="h2o">Water Vapor (H2O)</option>
+                            <option value="ch4">Methane (CH4)</option>
+                        </select>
+                        <div class="helper-text">Changes the expected infrared absorption bands.</div>
+                    </div>
+
+                    <div class="control-group" style="margin-top:1rem;">
+                        <div class="control-header">
+                            <label for="ftir-conc">Concentration</label>
+                            <span class="val-display"><span id="val-ftir-conc">10.0</span> %</span>
+                        </div>
+                        <input type="range" id="ftir-conc" min="1" max="100" value="10" step="1">
+                        <div class="helper-text">Percentage of target gas in the mix.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="ftir-press">Cell Pressure</label>
+                            <span class="val-display"><span id="val-ftir-press">1.0</span> atm</span>
+                        </div>
+                        <input type="range" id="ftir-press" min="0.1" max="5.0" value="1.0" step="0.1">
+                        <div class="helper-text">Causes pressure broadening (collisions).</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="ftir-temp">Gas Temperature</label>
+                            <span class="val-display"><span id="val-ftir-temp">25</span> °C</span>
+                        </div>
+                        <input type="range" id="ftir-temp" min="0" max="800" value="25" step="10">
+                        <div class="helper-text">Alters density and causes Doppler broadening.</div>
+                    </div>
+                </div>
+
+                <!-- Visualization Card -->
+                <div class="card viz-card ftir-card" style="display: flex; flex-direction: column; gap: 1rem;">
+
+                    <!-- Hardware Schematic -->
+                    <div class="ftir-hardware">
+                        <div class="ftir-component source">
+                            <span class="label">IR Source</span>
+                            <div class="beam beam-source"></div>
+                        </div>
+                        <div class="ftir-component splitter">
+                            <span class="label">Beam Splitter</span>
+                            <div class="beam beam-fixed"></div>
+                            <div class="beam beam-moving"></div>
+                        </div>
+                        <div class="ftir-component mirror-fixed">Mirror</div>
+                        <div class="ftir-component mirror-moving">V-Mirror</div>
+                        <div class="ftir-component gas-cell">
+                            <span class="label">Gas Cell (Reactor Out)</span>
+                            <div class="cell-particles" id="ftir-particles"></div>
+                            <div class="beam beam-out"></div>
+                        </div>
+                        <div class="ftir-component detector">Detector</div>
+                    </div>
+
+                    <!-- Output Spectrum Graph -->
+                    <div class="spectrum-container"
+                        style="flex-grow: 1; border: 1px solid var(--border-light); border-radius: var(--radius-md); background: #fff; padding: 10px;">
+                        <div
+                            style="display:flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
+                            <span>ABSORBANCE (A)</span>
+                            <span style="color:var(--accent-blue)">LIVE SPECTRUM</span>
+                        </div>
+                        <canvas id="ftir-canvas" width="600" height="200"
+                            style="width: 100%; height: 200px; display: block;"></canvas>
+                        <div
+                            style="text-align: center; font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px;">
+                            WAVENUMBER (cm⁻¹)
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Theory Panel -->
+            <div class="panel-section educational-panel"
+                style="margin-top: 2rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-light); padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">The Hardware Loop
+                    </h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">An IR source emits a broadband beam.
+                        The moving mirror creates an interference pattern (interferogram). The gas cell absorbs specific
+                        wavelengths based on the molecule's chemical bonds. A Fourier Transform converts the detector's
+                        raw signal into the readable spectrum above.</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">Pressure Broadening
+                    </h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">As pressure increases, molecules
+                        collide more frequently. These collisions perturb the energy states of the molecules during
+                        absorption, which "spreads out" (broadens) the spectral peaks over a larger range of wavenumbers
+                        (Lorentzian profile).</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">Why Stability is
+                        Critical</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Engineers use the area under the peak,
+                        or peak height, to calculate concentration ($c$) using the Beer-Lambert law ($A=\varepsilon l
+                        c$). If your reactor's exhaust temperature or pressure fluctuates wildly, the peak shapes
+                        distort and density drops, destroying your calibration curves and resulting in false readings.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- MODULE 5: Molecular Interaction -->
+        <section id="module-molecular" class="module-section">
+            <header class="module-header">
+                <h1>Molecular IR Absorption</h1>
+                <p>Observe how individual gas molecules interact with IR photons, causing vibrational excitation and
+                    line broadening.</p>
+            </header>
+
+            <div class="module-grid">
+                <!-- Controls Card -->
+                <div class="card controls-card">
+                    <h3>Microscopic Parameters</h3>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="mol-cross">Cross Section (σ)</label>
+                            <span class="val-display"><span id="val-mol-cross">1.0</span></span>
+                        </div>
+                        <input type="range" id="mol-cross" min="0.2" max="3.0" value="1.0" step="0.1">
+                        <div class="helper-text">"Effective area" for photon capture. Larger = higher hit probability.
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="mol-speed">Particle Speed (T)</label>
+                            <span class="val-display"><span id="val-mol-speed">Normal</span></span>
+                        </div>
+                        <input type="range" id="mol-speed" min="1" max="10" value="3" step="1">
+                        <div class="helper-text">High kinetic energy causes Doppler frequency shifts.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="mol-density">Particle Density (P)</label>
+                            <span class="val-display"><span id="val-mol-density">30</span></span>
+                        </div>
+                        <input type="range" id="mol-density" min="5" max="100" value="30" step="5">
+                        <div class="helper-text">Molecules per unit volume. High density = frequent collisions.</div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <label for="mol-flux">Photon Flux</label>
+                        </div>
+                        <input type="range" id="mol-flux" min="2" max="30" value="10" step="2">
+                        <div class="helper-text">Intensity of the incoming IR beam source.</div>
+                    </div>
+                </div>
+
+                <!-- Visualization Card -->
+                <div class="card viz-card no-padding"
+                    style="position: relative; overflow: hidden; min-height: 400px; background: #fafafa;">
+                    <canvas id="molecular-canvas" width="800" height="400"
+                        style="width: 100%; height: 100%; display: block;"></canvas>
+                    <div class="sim-legend"
+                        style="position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.9); padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.75rem; color: var(--text-secondary); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                        <span style="color:#ef4444; font-weight:bold;">●</span> IR Photon &nbsp;&nbsp;
+                        <span style="color:#1e293b; font-weight:bold;">○</span> Molecule &nbsp;&nbsp;
+                        <span style="color:#10b981; font-weight:bold;">✨</span> Absorption
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theory Panel -->
+            <div class="panel-section educational-panel"
+                style="margin-top: 2rem; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-light); padding: 1.5rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">Cross-Section (σ)
+                    </h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Mechanically, think of this as the
+                        "hitbox" of the molecule. In physics, it represents the probability of a photon inducing a
+                        transition to a higher vibrational energy state.</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">Vibration & Heat
+                    </h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">When a "hit" occurs, the photon
+                        vanishes, and its energy is transferred to the molecule. The molecule vibrates faster
+                        (excitation). In a real detector, we measure the <i>absence</i> of these photons.</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1rem;">The Engineering
+                        Reality</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Unstable pressure causes collisions
+                        that "reset" the vibration phase early (collisional broadening). This is the microscopic reason
+                        why your spectral peaks widen and calibrations fail.</p>
+                </div>
+            </div>
 
     </main>
 

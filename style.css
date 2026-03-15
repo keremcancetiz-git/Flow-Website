@@ -457,6 +457,130 @@ input[type=range] {
     /* Denser */
 }
 
+/* --- Module 4: FTIR Spectroscopy --- */
+.industrial-select {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-focus);
+    font-family: var(--font-sans);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.ftir-hardware {
+    position: relative;
+    height: 140px;
+    background: var(--bg-main);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    overflow: hidden;
+}
+
+.ftir-component {
+    background: var(--bg-card);
+    border: 2px solid var(--text-secondary);
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    z-index: 10;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+
+.ftir-component.source {
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
+.ftir-component.detector {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+}
+
+.ftir-component.gas-cell {
+    height: 80px;
+    width: 100px;
+    border-color: var(--accent-green);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.ftir-component.splitter {
+    transform: rotate(45deg);
+    border-radius: 0;
+    padding: 2px 10px;
+    border-color: #f59e0b;
+}
+
+.ftir-component.mirror-fixed {
+    position: absolute;
+    top: 10px;
+    left: 180px;
+}
+
+.ftir-component.mirror-moving {
+    position: absolute;
+    bottom: 10px;
+    left: 180px;
+}
+
+.beam {
+    position: absolute;
+    background: rgba(239, 68, 68, 0.5);
+    /* Red IR beam */
+    z-index: 1;
+}
+
+.beam-source {
+    top: 50%;
+    left: 100%;
+    width: 100px;
+    height: 4px;
+    transform: translateY(-50%);
+}
+
+.beam-fixed {
+    top: -50px;
+    left: 50%;
+    width: 4px;
+    height: 50px;
+    transform: translateX(-50%);
+}
+
+.beam-moving {
+    top: 100%;
+    left: 50%;
+    width: 4px;
+    height: 50px;
+    transform: translateX(-50%);
+}
+
+.beam-out {
+    top: 50%;
+    left: -60px;
+    width: 60px;
+    height: 4px;
+    transform: translateY(-50%);
+}
+
+.cell-particles {
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    opacity: 0.5;
+}
+
 /* Responsive adjustments */
 @media (max-width: 900px) {
     .module-grid {
